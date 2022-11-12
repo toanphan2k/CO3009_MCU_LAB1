@@ -32,9 +32,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define RED_STATE_DURATION 500
-#define YELLOW_STATE_DURATION 200
-#define GREEN_STATE_DURATION 300
+#define STOP_DURATION 500
+#define STAND_BY_DURATION 300
+#define GO_DURATION 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -46,8 +46,8 @@
 
 /* USER CODE BEGIN PV */
 uint32_t counter = 0;
-enum trafficLight{RED_State, YELLOW_State, GREEN_State};
-enum trafficLight state = RED_State;
+enum trafficLight{GO_STOP, STANDBY_STOP, STOP_GO, STOP_STANDBY};
+enum trafficLight state = GO_STOP;
 enum trafficLight next_state;
 /* USER CODE END PV */
 
@@ -101,27 +101,40 @@ int main(void)
   {
     /* USER CODE END WHILE */
 	  switch(state){
-	  case RED_State:
-		  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-		  if(counter >= RED_STATE_DURATION){
-			  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-			  next_state = YELLOW_State;
+	  case GO_STOP:
+		  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED_RED_2_GPIO_Port, LED_RED_2_Pin, GPIO_PIN_SET);
+		  if(counter >= GO_DURATION){
+			  HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET);
+			  next_state = STANDBY_STOP;
 			  counter = 0;
 		  }
 		  break;
-	  case YELLOW_State:
-		  HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_SET);
-		  if(counter >= YELLOW_STATE_DURATION){
-			  HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
-			  next_state = GREEN_State;
+	  case STANDBY_STOP:
+		  HAL_GPIO_WritePin(LED_YELLOW_1_GPIO_Port, LED_YELLOW_1_Pin, GPIO_PIN_SET);
+		  if(counter >= STAND_BY_DURATION){
+			  HAL_GPIO_WritePin(LED_YELLOW_1_GPIO_Port, LED_YELLOW_1_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(LED_RED_2_GPIO_Port, LED_RED_2_Pin, GPIO_PIN_RESET);
+			  next_state = STOP_GO;
 			  counter = 0;
 		  }
 		  break;
-	  case GREEN_State:
-		  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
-		  if(counter >= GREEN_STATE_DURATION){
-			  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
-			  next_state = RED_State;
+	  case STOP_GO:
+		  HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED_GREEN_2_GPIO_Port, LED_GREEN_2_Pin, GPIO_PIN_SET);
+		  if(counter >= GO_DURATION){
+			  HAL_GPIO_WritePin(LED_GREEN_2_GPIO_Port, LED_GREEN_2_Pin, GPIO_PIN_RESET);
+			  next_state = STOP_STANDBY;
+			  counter = 0;
+		  }
+		  break;
+	  case STOP_STANDBY:
+		  HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED_YELLOW_2_GPIO_Port, LED_YELLOW_2_Pin, GPIO_PIN_SET);
+		  if(counter >= STAND_BY_DURATION){
+			  HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(LED_YELLOW_2_GPIO_Port, LED_YELLOW_2_Pin, GPIO_PIN_RESET);
+			  next_state = GO_STOP;
 			  counter = 0;
 		  }
 		  break;
@@ -129,8 +142,8 @@ int main(void)
 	  state = next_state;
 	  counter ++;
 	  HAL_Delay(10);
-  }
     /* USER CODE BEGIN 3 */
+  }
   /* USER CODE END 3 */
 }
 
@@ -182,10 +195,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_RED_Pin|LED_GREEN_Pin|LED_YELLOW_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED_RED_1_Pin|LED_YELLOW_1_Pin|LED_GREEN_1_Pin|LED_RED_2_Pin
+                          |LED_YELLOW_2_Pin|LED_GREEN_2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LED_RED_Pin LED_GREEN_Pin LED_YELLOW_Pin */
-  GPIO_InitStruct.Pin = LED_RED_Pin|LED_GREEN_Pin|LED_YELLOW_Pin;
+  /*Configure GPIO pins : LED_RED_1_Pin LED_YELLOW_1_Pin LED_GREEN_1_Pin LED_RED_2_Pin
+                           LED_YELLOW_2_Pin LED_GREEN_2_Pin */
+  GPIO_InitStruct.Pin = LED_RED_1_Pin|LED_YELLOW_1_Pin|LED_GREEN_1_Pin|LED_RED_2_Pin
+                          |LED_YELLOW_2_Pin|LED_GREEN_2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
