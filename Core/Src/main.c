@@ -32,6 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DURATION 200
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,7 +43,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint32_t counter = 0;
 
+enum trafficLight{RED_State, YELLOW_State};
+enum trafficLight state = RED_State;
+enum trafficLight next_state;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +101,27 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  switch(state){
+	  case RED_State:
+		  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
+		  if(counter >= DURATION){
+			  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+			  next_state = YELLOW_State;
+			  counter = 0;
+		  }
+		  break;
+	  case YELLOW_State:
+		  HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_SET);
+		  if(counter >= DURATION){
+			  HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+			  next_state = RED_State;
+			  counter = 0;
+		  }
+		  break;
+	  }
+	  state = next_state;
+	  counter ++;
+	  HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
