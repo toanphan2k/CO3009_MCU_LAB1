@@ -1,0 +1,2 @@
+traffic_light_control.c:11:6:trafficCountdownControl_1	16	static
+traffic_light_control.c:15:6:trafficCountdownControl_2	16	static

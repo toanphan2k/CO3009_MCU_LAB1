@@ -19,6 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "led_segment_control.h"
+#include "traffic_light_control.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -42,7 +44,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+enum trafficLight{GO_STOP, STANDBY_STOP, STOP_GO, STOP_STANDBY};
+uint32_t counter = 0;
+enum trafficLight state = GO_STOP;
+enum trafficLight next_state;
+uint32_t counter_seg1 = GO_DURATION;
+uint32_t counter_seg2 = STOP_DURATION;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +101,64 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  switch(state){
+	  case GO_STOP:
+		  HAL_GPIO_WritePin(LED1_Green_GPIO_Port, LED1_Green_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED2_Red_GPIO_Port, LED2_Red_Pin, GPIO_PIN_SET);
+		  if(counter >= GO_DURATION){
+			  HAL_GPIO_WritePin(LED1_Green_GPIO_Port, LED1_Green_Pin, GPIO_PIN_RESET);
+			  next_state = STANDBY_STOP;
+			  counter = 0;
+			  counter_seg1 = STAND_BY_DURATION;
+		  }
+		  trafficCountdownControl_1(counter_seg1);
+		  trafficCountdownControl_2(counter_seg2);
+		  break;
+	  case STANDBY_STOP:
+		  HAL_GPIO_WritePin(LED1_Yellow_GPIO_Port, LED1_Yellow_Pin, GPIO_PIN_SET);
+		  if(counter >= STAND_BY_DURATION){
+			  HAL_GPIO_WritePin(LED1_Yellow_GPIO_Port, LED1_Yellow_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(LED2_Red_GPIO_Port, LED2_Red_Pin, GPIO_PIN_RESET);
+			  next_state = STOP_GO;
+			  counter = 0;
+			  counter_seg1 = STOP_DURATION;
+			  counter_seg2 = GO_DURATION;
+		  }
+		  trafficCountdownControl_1(counter_seg1);
+		  trafficCountdownControl_2(counter_seg2);
+		  break;
+	  case STOP_GO:
+		  HAL_GPIO_WritePin(LED1_Red_GPIO_Port, LED1_Red_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED2_Green_GPIO_Port, LED2_Green_Pin, GPIO_PIN_SET);
+		  if(counter >= GO_DURATION){
+			  HAL_GPIO_WritePin(LED2_Green_GPIO_Port, LED2_Green_Pin, GPIO_PIN_RESET);
+			  next_state = STOP_STANDBY;
+			  counter = 0;
+			  counter_seg2 = STAND_BY_DURATION;
+		  }
+		  trafficCountdownControl_1(counter_seg1);
+		  trafficCountdownControl_2(counter_seg2);
+		  break;
+	  case STOP_STANDBY:
+		  HAL_GPIO_WritePin(LED1_Red_GPIO_Port, LED1_Red_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(LED2_Yellow_GPIO_Port, LED2_Yellow_Pin, GPIO_PIN_SET);
+		  if(counter >= STAND_BY_DURATION){
+			  HAL_GPIO_WritePin(LED1_Red_GPIO_Port, LED1_Red_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(LED2_Yellow_GPIO_Port, LED2_Yellow_Pin, GPIO_PIN_RESET);
+			  next_state = GO_STOP;
+			  counter = 0;
+			  counter_seg1 = GO_DURATION;
+			  counter_seg2 = STOP_DURATION;
+		  }
+		  trafficCountdownControl_1(counter_seg1);
+		  trafficCountdownControl_2(counter_seg2);
+		  break;
+	  }
+	  state = next_state;
+	  counter ++;
+	  counter_seg1 --;
+	  counter_seg2 --;
+	  HAL_Delay(10);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -146,16 +210,39 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_RED_Pin|LED_YELLOW_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED1_Green_Pin|LED1_Red_Pin|LED1_Yellow_Pin|LED2_Red_Pin
+                          |LED2_Green_Pin|LED2_Yellow_Pin|SEG_A_1_Pin|SEG_B_1_Pin
+                          |SEG_C_1_Pin|SEG_D_1_Pin|SEG_E_1_Pin|SEG_F_1_Pin
+                          |SEG_G_1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LED_RED_Pin LED_YELLOW_Pin */
-  GPIO_InitStruct.Pin = LED_RED_Pin|LED_YELLOW_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, SEG_A_2_Pin|SEG_B_2_Pin|SEG_G_2_Pin|SEG_F_2_Pin
+                          |SEG_E_2_Pin|SEG_D_2_Pin|SEG_C_2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : LED1_Green_Pin LED1_Red_Pin LED1_Yellow_Pin LED2_Red_Pin
+                           LED2_Green_Pin LED2_Yellow_Pin SEG_A_1_Pin SEG_B_1_Pin
+                           SEG_C_1_Pin SEG_D_1_Pin SEG_E_1_Pin SEG_F_1_Pin
+                           SEG_G_1_Pin */
+  GPIO_InitStruct.Pin = LED1_Green_Pin|LED1_Red_Pin|LED1_Yellow_Pin|LED2_Red_Pin
+                          |LED2_Green_Pin|LED2_Yellow_Pin|SEG_A_1_Pin|SEG_B_1_Pin
+                          |SEG_C_1_Pin|SEG_D_1_Pin|SEG_E_1_Pin|SEG_F_1_Pin
+                          |SEG_G_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SEG_A_2_Pin SEG_B_2_Pin SEG_G_2_Pin SEG_F_2_Pin
+                           SEG_E_2_Pin SEG_D_2_Pin SEG_C_2_Pin */
+  GPIO_InitStruct.Pin = SEG_A_2_Pin|SEG_B_2_Pin|SEG_G_2_Pin|SEG_F_2_Pin
+                          |SEG_E_2_Pin|SEG_D_2_Pin|SEG_C_2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 

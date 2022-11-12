@@ -1,0 +1,2 @@
+led_segment_control.c:9:6:display7SEG_1	16	static
+led_segment_control.c:113:6:display7SEG_2	16	static
