@@ -42,6 +42,13 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint32_t counter = 0;
+uint16_t ledPin[12] = {LED_1_Pin, LED_2_Pin, LED_3_Pin, LED_4_Pin,
+				LED_5_Pin, LED_6_Pin, LED_7_Pin, LED_8_Pin,
+				LED_9_Pin, LED_10_Pin, LED_11_Pin, LED_12_Pin};
+uint8_t hours = 0;
+uint8_t mins = 0;
+uint8_t secs = 0;
 
 /* USER CODE END PV */
 
@@ -54,6 +61,60 @@ static void MX_GPIO_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void testLed(int index){
+	HAL_GPIO_WritePin(GPIOA, LED_1_Pin|LED_2_Pin|LED_3_Pin|LED_4_Pin
+	                          |LED_5_Pin|LED_6_Pin|LED_7_Pin|LED_8_Pin
+	                          |LED_9_Pin|LED_10_Pin|LED_11_Pin|LED_12_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, ledPin[index], GPIO_PIN_SET);
+}
+
+void clearAllClock(){
+	HAL_GPIO_WritePin(GPIOA, LED_1_Pin|LED_2_Pin|LED_3_Pin|LED_4_Pin
+	                          |LED_5_Pin|LED_6_Pin|LED_7_Pin|LED_8_Pin
+	                          |LED_9_Pin|LED_10_Pin|LED_11_Pin|LED_12_Pin, GPIO_PIN_RESET);
+}
+
+void setNumberOnClock(int num){
+	HAL_GPIO_WritePin(GPIOA, ledPin[num], GPIO_PIN_SET);
+}
+
+void clearNumberOnClock(int num){
+	HAL_GPIO_WritePin(GPIOA, ledPin[num], GPIO_PIN_RESET);
+
+}
+void clock(){
+	clearAllClock();
+	int secIndex;
+	int minIndex;
+	int hourIndex;
+
+	secIndex = secs/5 - 1;
+	if(secIndex < 0) secIndex = 11;
+
+	minIndex = mins/5 - 1;
+	if(minIndex < 0) minIndex = 11;
+
+	hourIndex = hours - 1;
+	if(hourIndex >= 12) hourIndex = hourIndex - 12;
+	if(hourIndex < 0) hourIndex = 11;
+
+	setNumberOnClock(secIndex);
+	setNumberOnClock(minIndex);
+	setNumberOnClock(hourIndex);
+	secs ++;
+	if(secs >= 60) {
+		secs = 0;
+		mins ++;
+		if(mins >= 60){
+			mins = 0;
+			hours ++;
+			if(hours >= 24){
+				hours = 0;
+			}
+		}
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -94,6 +155,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  clock();
+	  HAL_Delay(100);
+	  /*
+	  testLed(counter);
+	  counter++;
+	  if(counter >= 12) counter = 0;
+	  HAL_Delay(1000);
+	  */
 
     /* USER CODE BEGIN 3 */
   }
@@ -148,10 +217,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_RED_Pin|LED_YELLOW_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED_1_Pin|LED_2_Pin|LED_3_Pin|LED_4_Pin
+                          |LED_5_Pin|LED_6_Pin|LED_7_Pin|LED_8_Pin
+                          |LED_9_Pin|LED_10_Pin|LED_11_Pin|LED_12_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LED_RED_Pin LED_YELLOW_Pin */
-  GPIO_InitStruct.Pin = LED_RED_Pin|LED_YELLOW_Pin;
+  /*Configure GPIO pins : LED_1_Pin LED_2_Pin LED_3_Pin LED_4_Pin
+                           LED_5_Pin LED_6_Pin LED_7_Pin LED_8_Pin
+                           LED_9_Pin LED_10_Pin LED_11_Pin LED_12_Pin */
+  GPIO_InitStruct.Pin = LED_1_Pin|LED_2_Pin|LED_3_Pin|LED_4_Pin
+                          |LED_5_Pin|LED_6_Pin|LED_7_Pin|LED_8_Pin
+                          |LED_9_Pin|LED_10_Pin|LED_11_Pin|LED_12_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
